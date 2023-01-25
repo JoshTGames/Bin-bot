@@ -1,13 +1,14 @@
 # My modules
 import json_manager
 
-import os, random
+import os, sys, random
 from typing import Optional
 import discord
 from discord import app_commands
 import aiocron
 
 settings = json_manager.ReadFile(os.getcwd() + '/settings.json')
+adminIds = settings['adminIds']
 online_presence = settings['online-presence']
 
 class MyClient(discord.Client):
@@ -62,6 +63,16 @@ async def clear_user(interaction: discord.Interaction, user: discord.User):
         if(msg.author.id != user.id): continue
         msgs.append(msg);   
     await interaction.channel.delete_messages(msgs)
+
+@tree.command(name="shutdown", description="Shuts the bot down")
+async def self(interaction: discord.Interaction): 
+    if(not (interaction.user.id in adminIds)): # Stops anyone but the admins to turn shut off the bot.
+        await interaction.response.send_message(f'You do not have permission to run that command!', ephemeral= True)    
+        return 
+
+    print(f'{interaction.user} has shutdown the bot!')
+    await interaction.response.send_message(f'Shutting down...', ephemeral= True)    
+    sys.exit(0)
 
 token = open('token.txt', 'r')
 client.run(token.read())
